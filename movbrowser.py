@@ -59,25 +59,26 @@ class MovBrowser(Frame):
     
     def isMovFile(self,file):
         movExtension = file.split(".")[-1].upper()
-        if(movExtension == 'AVI' or movExtension =='MKV' or movExtension =='WMV' or movExtension == 'MPG'):
+        if(movExtension == 'AVI' or movExtension =='MKV' or movExtension =='WMV' \
+           or movExtension == 'MPG' or movExtension == 'ISO'):
             return True
         else:
             return False
         
     def getPhotoFile(self,file):
         pos = file.rfind('.')
-        errorFilename = file[0:pos]+'.xxx'
+        photoFilename = file[0:pos]+'.xxx'
         jpgFilename = file[0:pos]+'.jpg'
         pngFilename = file[0:pos]+'.png'
         bmpFilename = file[0:pos]+'.bmp'
         
         if(os.path.exists(jpgFilename)):
-            return jpgFilename
+            photoFilename=jpgFilename
         if(os.path.exists(bmpFilename)):
-            return bmpFilename
+            photoFilename=bmpFilename
         if(os.path.exists(pngFilename)):
-            return pngFilename
-        return errorFilename # return error filename
+            photoFilename=pngFilename
+        return photoFilename # if not photo,then return error filename
 
 
     def makeProgressString(self):
