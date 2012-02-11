@@ -19,6 +19,9 @@ class MovBrowser(Frame):
     def __init__(self, master):
         frame=Frame.__init__(self, master)
         self.MOV_FILES=[]
+        self.movPlayer='gnome-mplayer'
+        self.var  = IntVar()
+        self.var.set(1)
         self.pack(expand=YES, fill=BOTH)
         self.makeMenu()
         self.makeProgressString()
@@ -34,8 +37,21 @@ class MovBrowser(Frame):
         Operatemenu.add_command(label="Exit", command=self.quit)
         
         configmenu = Menu(self.menubar)
+        selectPlayeremnu=Menu(configmenu)
         self.menubar.add_cascade(label="Config", menu=configmenu)
         configmenu.add_command(label="Set movie folder", command=self.setMovFolder)
+        configmenu.add_cascade(label="Select movie player", menu=selectPlayeremnu)
+        selectPlayeremnu.add_radiobutton(label='gnome-mplayer',value=1,\
+                                         variable=self.var, command=self.setMovPlayer)
+        selectPlayeremnu.add_radiobutton(label='smplayer',value=2,\
+                                         variable=self.var, command=self.setMovPlayer)
+        selectPlayeremnu.add_radiobutton(label='totem',value=3,\
+                                         variable=self.var, command=self.setMovPlayer)
+        selectPlayeremnu.add_radiobutton(label='vlc',value=4,\
+                                         variable=self.var, command=self.setMovPlayer)
+        selectPlayeremnu.add_radiobutton(label='realplay',value=5,\
+                                         variable=self.var, command=self.setMovPlayer)
+
         self.master.config(menu=self.menubar)
         
     def makeCanvas(self):
@@ -57,17 +73,32 @@ class MovBrowser(Frame):
     def getHistoryMovFileName(self):
         return os.getenv('HOME')+os.sep+'movlist.dat'
     
+    def setMovPlayer(self):
+        print self.var.get()
+        if(self.var.get() == 1):
+            self.movPlayer = 'gnome-mplayer'
+        if(self.var.get() == 2):
+            self.movPlayer = 'smplayer'    
+        if(self.var.get() == 3):
+            self.movPlayer = 'totem'
+        if(self.var.get() == 4):
+            self.movPlayer = 'vlc'
+        if(self.var.get() == 5):
+            self.movPlayer = 'realplay'
+
+    
     def isMovFile(self,file):
         movExtension = file.split(".")[-1].upper()
         if(movExtension == 'AVI' or movExtension =='MKV' or movExtension =='WMV' \
-           or movExtension == 'MPG' or movExtension == 'ISO'):
+           or movExtension == 'MPG' or movExtension == 'ISO' or movExtension =='RM' \
+           or movExtension =='RMVB'):
             return True
         else:
             return False
         
     def getPhotoFile(self,file):
         pos = file.rfind('.')
-        photoFilename = file[0:pos]+'.xxx'
+        photoFilename = file[0:pos]+'.UNK'
         jpgFilename = file[0:pos]+'.jpg'
         pngFilename = file[0:pos]+'.png'
         bmpFilename = file[0:pos]+'.bmp'
@@ -191,7 +222,7 @@ class MovBrowser(Frame):
             p1 = subprocess.Popen(["eog" , imgFile])
             ## sts1 = os.waitpid(p1.pid, 0)
         if(os.path.exists(fname)):
-            p = subprocess.Popen(["gnome-mplayer" , fname])
+            p = subprocess.Popen([self.movPlayer , fname])
             ## sts = os.waitpid(p.pid, 0)
 
     def updateMovDB(self):
