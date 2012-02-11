@@ -31,7 +31,7 @@ class MovBrowser(Frame):
         self.menubar = Menu(self)
         Operatemenu = Menu(self.menubar)
         self.menubar.add_cascade(label="Operate", menu=Operatemenu)
-        Operatemenu.add_command(label="Show Image", command=self.showImage)
+        Operatemenu.add_command(label="Show Image", command=self.startShowImage)
         Operatemenu.add_command(label="Update movie DB", command=self.updateMovDB)
         Operatemenu.add_separator()
         Operatemenu.add_command(label="Exit", command=self.quit)
@@ -165,6 +165,11 @@ class MovBrowser(Frame):
             pass
         
  
+    def startShowImage(self):
+        t2 = threading.Thread(target=self.showImage)
+        t2.start()
+        
+        
     def showImage(self):
         MOV_FILES=[]
         historyMovFile = self.getHistoryMovFileName()
@@ -188,6 +193,7 @@ class MovBrowser(Frame):
         self.canvas.delete('all')
         for k, movname in enumerate(MOV_FILES):
             self.updateProgressString(k)
+            time.sleep(0.1)
             photoname = self.getPhotoFile(movname)
             print photoname
             if(os.path.exists(photoname)):
