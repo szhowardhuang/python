@@ -15,6 +15,7 @@ import tkMessageBox
 class MovBrowser(Frame):
     IMG_W = 240; IMG_H = 160
     IMG_X=250; IMG_Y=210; IMG_NUM_ON_ROW=5
+    canvPanelWidth=1280; canvPanelHeight=600;# will dynamic modify by content
     
     def __init__(self, master):
         frame=Frame.__init__(self, master)
@@ -56,8 +57,8 @@ class MovBrowser(Frame):
         
     def makeCanvas(self):
         canv = Canvas(self, bg='brown', relief=SUNKEN)
-        canv.config(width=1280, height=600)                
-        canv.config(scrollregion=(0,0,1280, 50000))         
+        canv.config(width= self.canvPanelWidth, height= self.canvPanelHeight)                
+        canv.config(scrollregion=( 0, 0, self.canvPanelWidth, self.canvPanelHeight ))         
         canv.config(highlightthickness=0)                 
 
         sbar = Scrollbar(self)
@@ -191,11 +192,14 @@ class MovBrowser(Frame):
         self.MOV_FILES = MOV_FILES            
         self.photo = list(range(len(MOV_FILES)))
         self.canvas.delete('all')
+        fileNumbers = len(MOV_FILES)
+        self.canvPanelHeight = (fileNumbers//self.IMG_NUM_ON_ROW + 1)*self.IMG_Y
+        self.canvas.config(scrollregion=(0,0, self.canvPanelWidth, self.canvPanelHeight))
         for k, movname in enumerate(MOV_FILES):
             self.updateProgressString(k)
-            time.sleep(0.1)
+            time.sleep(0.05)
             photoname = self.getPhotoFile(movname)
-            print photoname
+            ## print photoname
             if(os.path.exists(photoname)):
                 ## print movname,'   ',photoname
                 img = Image.open(photoname)
