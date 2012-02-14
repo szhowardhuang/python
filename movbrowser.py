@@ -100,16 +100,20 @@ class MovBrowser(Frame):
     def getPhotoFile(self,file):
         pos = file.rfind('.')
         photoFilename = file[0:pos]+'.UNK'
-        jpgFilename = file[0:pos]+'.jpg'
-        pngFilename = file[0:pos]+'.png'
-        bmpFilename = file[0:pos]+'.bmp'
-        
-        if(os.path.exists(jpgFilename)):
-            photoFilename=jpgFilename
-        if(os.path.exists(bmpFilename)):
-            photoFilename=bmpFilename
-        if(os.path.exists(pngFilename)):
-            photoFilename=pngFilename
+        for i in range(1,4): ## remove the latest letter of file
+            jpgFilename = file[0:pos]+'.jpg'
+            pngFilename = file[0:pos]+'.png'
+            bmpFilename = file[0:pos]+'.bmp'
+            pos = pos - 1
+            if(os.path.exists(jpgFilename)):
+                photoFilename=jpgFilename
+                break
+            if(os.path.exists(bmpFilename)):
+                photoFilename=bmpFilename
+                break
+            if(os.path.exists(pngFilename)):
+                photoFilename=pngFilename
+                break
         return photoFilename # if not photo,then return error filename
 
 
