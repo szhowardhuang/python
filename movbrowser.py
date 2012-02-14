@@ -231,6 +231,8 @@ class MovBrowser(Frame):
         if(os.path.exists(imgFile)):
             p1 = subprocess.Popen(["eog" , imgFile])
             ## sts1 = os.waitpid(p1.pid, 0)
+        else: ## user can modify image name by manual
+            p1 = subprocess.Popen(["caja" , os.path.split(imgFile)[0]])
         if(os.path.exists(fname)):
             p = subprocess.Popen([self.movPlayer , fname])
             ## sts = os.waitpid(p.pid, 0)
@@ -270,7 +272,6 @@ class MovBrowser(Frame):
             outfile = open(historyMovFile,"wb")
             pickle.dump(check_files, outfile,2)
             outfile.close()
-        print checkResult
         tkMessageBox.showinfo( "Movie DB Verify", checkResult+' , Movie DB Verify Finish.')
             
      
