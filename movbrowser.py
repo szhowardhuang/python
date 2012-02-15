@@ -15,10 +15,11 @@ import tkMessageBox
 class MovBrowser(Frame):
     IMG_W = 240; IMG_H = 160
     IMG_X=250; IMG_Y=210; IMG_NUM_ON_ROW=5
-    canvPanelWidth=1280; canvPanelHeight=600;# will dynamic modify by content
     
     def __init__(self, master):
         frame=Frame.__init__(self, master)
+        self.canvPanelWidth = master.winfo_screenwidth()
+        self.canvPanelHeight = master.winfo_screenheight()-150 ## height will dynamic modify by content
         self.MOV_FILES=[]
         self.movPlayer='gnome-mplayer'
         self.var  = IntVar()
