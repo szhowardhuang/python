@@ -21,7 +21,7 @@ class MovBrowser(Frame):
         self.canvPanelWidth = master.winfo_screenwidth()
         self.canvPanelHeight = master.winfo_screenheight()-150 ## height will dynamic modify by content
         self.MOV_FILES=[]
-        self.movPlayer='gnome-mplayer'
+        self.movPlayer='default player'
         self.var  = IntVar()
         self.var.set(1)
         self.pack(expand=YES, fill=BOTH)
@@ -43,15 +43,17 @@ class MovBrowser(Frame):
         self.menubar.add_cascade(label="Config", menu=configmenu)
         configmenu.add_command(label="Set movie folder", command=self.setMovFolder)
         configmenu.add_cascade(label="Select movie player", menu=selectPlayeremnu)
-        selectPlayeremnu.add_radiobutton(label='gnome-mplayer',value=1,\
+        selectPlayeremnu.add_radiobutton(label='default player',value=1,\
                                          variable=self.var, command=self.setMovPlayer)
-        selectPlayeremnu.add_radiobutton(label='smplayer',value=2,\
+        selectPlayeremnu.add_radiobutton(label='ubuntu gnome-mplayer',value=2,\
                                          variable=self.var, command=self.setMovPlayer)
-        selectPlayeremnu.add_radiobutton(label='totem',value=3,\
+        selectPlayeremnu.add_radiobutton(label='ubuntu smplayer',value=3,\
                                          variable=self.var, command=self.setMovPlayer)
-        selectPlayeremnu.add_radiobutton(label='vlc',value=4,\
+        selectPlayeremnu.add_radiobutton(label='ubuntu totem',value=4,\
                                          variable=self.var, command=self.setMovPlayer)
-        selectPlayeremnu.add_radiobutton(label='realplay',value=5,\
+        selectPlayeremnu.add_radiobutton(label='vlc',value=5,\
+                                         variable=self.var, command=self.setMovPlayer)
+        selectPlayeremnu.add_radiobutton(label='realplay',value=6,\
                                          variable=self.var, command=self.setMovPlayer)
 
         self.master.config(menu=self.menubar)
@@ -76,16 +78,17 @@ class MovBrowser(Frame):
         return os.getenv('HOME')+os.sep+'movlist.dat'
     
     def setMovPlayer(self):
-        print self.var.get()
         if(self.var.get() == 1):
-            self.movPlayer = 'gnome-mplayer'
+            self.movPlayer = 'default player'
         if(self.var.get() == 2):
-            self.movPlayer = 'smplayer'    
+            self.movPlayer = 'gnome-mplayer'
         if(self.var.get() == 3):
-            self.movPlayer = 'totem'
+            self.movPlayer = 'smplayer'    
         if(self.var.get() == 4):
-            self.movPlayer = 'vlc'
+            self.movPlayer = 'totem'
         if(self.var.get() == 5):
+            self.movPlayer = 'vlc'
+        if(self.var.get() == 6):
             self.movPlayer = 'realplay'
 
     
@@ -228,18 +231,31 @@ class MovBrowser(Frame):
         self.canvas.bind('<Button-4>', lambda event : self.canvas.yview('scroll', -1, 'units'))
         self.canvas.bind('<Button-5>', lambda event : self.canvas.yview('scroll', 1, 'units'))
         
+    def openFileByDefaultApplication(self, file):
+        if os.name == "nt":
+            os.filestart(file)
+        elif os.name == "posix":
+            if os.uname()[0] == "Linux":
+                os.system("/usr/bin/xdg-open "+file)
+            elif os.uname()[0] == "Mac":
+                os.system("open "+file)
+        print os.uname()[0]
+
+        
     def onDoubleClick(self, event):
         raw = int(self.canvas.canvasx(event.x) // self.IMG_X)
         collum = int(self.canvas.canvasy(event.y) // self.IMG_Y)
         fname=self.MOV_FILES[raw+self.IMG_NUM_ON_ROW*collum]
         imgFile=self.getPhotoFile(fname)
         if(os.path.exists(imgFile)):
-            p1 = subprocess.Popen(["eog" , imgFile])
-            ## sts1 = os.waitpid(p1.pid, 0)
-        else: ## user can modify image name by manual
-            p1 = subprocess.Popen(["caja" , os.path.split(imgFile)[0]])
+            self.openFileByDefaultApplication(imgFile)  
+        else: ## open folder,then user can modify image name by manual
+            self.openFileByDefaultApplication(os.path.split(imgFile)[0])
         if(os.path.exists(fname)):
-            p = subprocess.Popen([self.movPlayer , fname])
+            if(self.movPlayer == 'default player'):
+                self.openFileByDefaultApplication(fname)
+            else:
+                p = subprocess.Popen([self.movPlayer , fname])
             ## sts = os.waitpid(p.pid, 0)
 
     def updateMovDB(self):
