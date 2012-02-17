@@ -237,7 +237,7 @@ class MovBrowser(Frame):
         elif os.name == "posix":
             if os.uname()[0] == "Linux":
                 os.system("/usr/bin/xdg-open "+file)
-            elif os.uname()[0] == "Mac":
+            elif os.uname()[0] == "Darwin":
                 os.system("open "+file)
         print os.uname()[0]
 
