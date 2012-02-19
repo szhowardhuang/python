@@ -1,4 +1,4 @@
-﻿# encoding: UTF-8
+﻿#coding=utf-8 
 
 from Tkinter import *
 import glob, os
@@ -11,6 +11,7 @@ import threading
 import time
 import pickle
 import tkMessageBox
+import re
 
 class MovBrowser(Frame):
     IMG_W = 240; IMG_H = 160
@@ -28,6 +29,7 @@ class MovBrowser(Frame):
         self.makeMenu()
         self.makeProgressString()
         self.makeCanvas()
+
         
     def makeMenu(self):
         self.menubar = Menu(self)
@@ -96,7 +98,7 @@ class MovBrowser(Frame):
         movExtension = file.split(".")[-1].upper()
         if(movExtension == 'AVI' or movExtension =='MKV' or movExtension =='WMV' \
            or movExtension == 'MPG' or movExtension == 'ISO' or movExtension =='RM' \
-           or movExtension =='RMVB'):
+           or movExtension =='RMVB' or movExtension =='MDF'):
             return True
         else:
             return False
@@ -108,6 +110,9 @@ class MovBrowser(Frame):
             jpgFilename = file[0:pos]+'.jpg'
             pngFilename = file[0:pos]+'.png'
             bmpFilename = file[0:pos]+'.bmp'
+            jpgFilename1 = file[0:pos]+'.JPG'
+            pngFilename1 = file[0:pos]+'.PNG'
+            bmpFilename1 = file[0:pos]+'.BMP'
             pos = pos - 1
             if(os.path.exists(jpgFilename)):
                 photoFilename=jpgFilename
@@ -117,6 +122,15 @@ class MovBrowser(Frame):
                 break
             if(os.path.exists(pngFilename)):
                 photoFilename=pngFilename
+                break
+            if(os.path.exists(jpgFilename1)):
+                photoFilename=jpgFilename1
+                break
+            if(os.path.exists(bmpFilename1)):
+                photoFilename=bmpFilename1
+                break
+            if(os.path.exists(pngFilename1)):
+                photoFilename=pngFilename1
                 break
         return photoFilename # if not photo,then return error filename
 
@@ -205,7 +219,7 @@ class MovBrowser(Frame):
         self.canvas.config(scrollregion=(0,0, self.canvPanelWidth, self.canvPanelHeight))
         for k, movname in enumerate(MOV_FILES):
             self.updateProgressString(k)
-            time.sleep(0.05)
+            time.sleep(0.01)
             photoname = self.getPhotoFile(movname)
             ## print photoname
             if(os.path.exists(photoname)):
@@ -231,12 +245,29 @@ class MovBrowser(Frame):
         self.canvas.bind('<Button-4>', lambda event : self.canvas.yview('scroll', -1, 'units'))
         self.canvas.bind('<Button-5>', lambda event : self.canvas.yview('scroll', 1, 'units'))
         
+    def convertFilename(self,src):
+        print repr(src) 
+        isUnicode = False
+        if(isinstance(src, unicode)):
+            isUnicode = True
+            src.encode('GBK') ## encode to GBK for chinses handler
+        dest = []
+        for i in range(len(src)):
+            if src[i] == ' ' or src[i] == '(' or src[i] == ')' or src[i] == '-':
+                dest += '\\'
+            dest += src[i]
+        if isUnicode:
+            return ''.join(dest).encode('utf-8') ## encode to utf-8
+        else:
+            return ''.join(dest)
+        
+    
     def openFileByDefaultApplication(self, file):
         if os.name == "nt":
             os.filestart(file)
         elif os.name == "posix":
             if os.uname()[0] == "Linux":
-                os.system("/usr/bin/xdg-open "+file)
+                os.system("/usr/bin/xdg-open " + self.convertFilename(file))
             elif os.uname()[0] == "Darwin":
                 os.system("open "+file)
         print os.uname()[0]
