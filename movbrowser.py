@@ -11,7 +11,7 @@ import threading
 import time
 import pickle
 import tkMessageBox
-import re
+## import re
 
 class MovBrowser(Frame):
     IMG_W = 240; IMG_H = 160
@@ -37,6 +37,7 @@ class MovBrowser(Frame):
         self.menubar.add_cascade(label="Operate", menu=Operatemenu)
         Operatemenu.add_command(label="Show Image", command=self.startShowImage)
         Operatemenu.add_command(label="Update movie DB", command=self.updateMovDB)
+        Operatemenu.add_command(label="Sort movie DB", command=self.sortMovDB)
         Operatemenu.add_separator()
         Operatemenu.add_command(label="Exit", command=self.quit)
         
@@ -288,6 +289,40 @@ class MovBrowser(Frame):
             else:
                 p = subprocess.Popen([self.movPlayer , fname])
             ## sts = os.waitpid(p.pid, 0)
+
+    def sortMovDB(self):
+        tSort = threading.Thread(target=self.sortFiles)
+        tSort.start()
+        
+    def sortFiles(self):
+        historyMovFile = self.getHistoryMovFileName()
+        infile = open(historyMovFile,"rb")
+        originalFiles = pickle.load(infile)
+        infile.close()
+        sortFiles = []
+        finalFiles = []
+        i=0
+        for file in originalFiles:
+            i=i+1
+            self.updateProgressString(i)
+            if(self.isMovFile(file)):
+                sortFiles.append(os.path.split(file)[-1])
+        sortFiles=list(set(sortFiles))
+        sortFiles.sort()
+        ## print sortFiles
+
+        for file in sortFiles:
+            i=i+1
+            self.updateProgressString(i)
+            for oriFile in originalFiles:
+                if oriFile.find(file) != -1:
+                    finalFiles.append(oriFile)
+        ## print finalFiles
+        
+        outfile = open(historyMovFile,"wb")
+        pickle.dump(finalFiles, outfile,2)
+        outfile.close()
+        tkMessageBox.showinfo( "Movie DB Sort", 'Movie DB Sort Finish.')
 
     def updateMovDB(self):
         movConfigFile = self.getMovBrowserIniFileName()
