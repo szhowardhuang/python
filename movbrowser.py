@@ -33,13 +33,23 @@ class MovBrowser(Frame):
         
     def makeMenu(self):
         self.menubar = Menu(self)
+        
+        Filemenu = Menu(self.menubar)
+        self.menubar.add_cascade(label="File", menu=Filemenu)
+        Filemenu.add_command(label="Exit", command=self.quit)
+        
         Operatemenu = Menu(self.menubar)
+        Sorttypemenu = Menu(Operatemenu)
         self.menubar.add_cascade(label="Operate", menu=Operatemenu)
         Operatemenu.add_command(label="Show Image", command=self.startShowImage)
         Operatemenu.add_command(label="Update movie DB", command=self.updateMovDB)
-        Operatemenu.add_command(label="Sort movie DB", command=self.sortMovDB)
-        Operatemenu.add_separator()
-        Operatemenu.add_command(label="Exit", command=self.quit)
+        Operatemenu.add_cascade(label="Sort movie DB", menu=Sorttypemenu)
+        
+        Sorttypemenu.add_command(label = "By Movie Name",command=self.sortMovDBByName)
+        Sorttypemenu.add_command(label = "By Movie File Size",command=self.sortMovDBByFileSize)
+        Sorttypemenu.add_command(label = "By Movie Folder",command=self.sortMovDBByFolder)
+        Sorttypemenu.add_command(label = "By Playback Frequency",command=self.sortMovDBByPlayback)
+
         
         configmenu = Menu(self.menubar)
         selectPlayeremnu=Menu(configmenu)
@@ -79,6 +89,9 @@ class MovBrowser(Frame):
     
     def getHistoryMovFileName(self):
         return os.getenv('HOME')+os.sep+'movlist.dat'
+    
+    def getFavoriteFileName(self):
+        return os.getenv('HOME')+os.sep+'favlist.dat'
     
     def setMovPlayer(self):
         if(self.var.get() == 1):
@@ -273,6 +286,32 @@ class MovBrowser(Frame):
                 os.system("open "+file)
         print os.uname()[0]
 
+    def saveFavoriteFile(self,filename):
+        originalFiles = []
+        newFavorite = True
+        favoriteFileName = self.getFavoriteFileName()
+        if(os.path.exists(favoriteFileName)):
+            infile = open(favoriteFileName,"rb")
+            originalFiles = pickle.load(infile)
+            infile.close()       
+        favoriteLen = len(originalFiles)
+        if favoriteLen == 0:
+            originalFiles.append([1,filename])
+        else:
+            for i in range(favoriteLen):
+                if filename in originalFiles[i]:
+                    newFavorite=False
+                    originalFiles[i][0] = originalFiles[i][0] + 1
+            if newFavorite:
+                originalFiles.append([1,filename])
+
+        originalFiles.sort()
+        originalFiles.reverse()
+        ## print originalFiles
+        
+        outfile = open(favoriteFileName,"wb")
+        pickle.dump(originalFiles, outfile,2)
+        outfile.close()
         
     def onDoubleClick(self, event):
         raw = int(self.canvas.canvasx(event.x) // self.IMG_X)
@@ -284,17 +323,104 @@ class MovBrowser(Frame):
         else: ## open folder,then user can modify image name by manual
             self.openFileByDefaultApplication(os.path.split(imgFile)[0])
         if(os.path.exists(fname)):
+            self.saveFavoriteFile(fname)
             if(self.movPlayer == 'default player'):
                 self.openFileByDefaultApplication(fname)
             else:
                 p = subprocess.Popen([self.movPlayer , fname])
             ## sts = os.waitpid(p.pid, 0)
 
-    def sortMovDB(self):
-        tSort = threading.Thread(target=self.sortFiles)
+    def sortMovDBByPlayback(self):
+        tSort = threading.Thread(target=self.sortFilesByPlayback)
         tSort.start()
         
-    def sortFiles(self):
+    def sortFilesByPlayback(self):
+        historyMovFile = self.getHistoryMovFileName()
+        infile = open(historyMovFile,"rb")
+        originalFiles = pickle.load(infile)
+        infile.close()
+
+        finalFiles = []
+        favoriteFiles = []
+        favoriteFileName = self.getFavoriteFileName()
+        if(os.path.exists(favoriteFileName)):
+            infile = open(favoriteFileName,"rb")
+            favoriteFiles = pickle.load(infile)
+            infile.close()       
+        favoriteLen = len(favoriteFiles)
+        if favoriteLen == 0:
+            return
+        else:
+            for i in range(favoriteLen):
+                finalFiles.append(favoriteFiles[i][1])
+                originalFiles.remove(favoriteFiles[i][1])
+
+        finalFiles = finalFiles + originalFiles
+        ## print finalFiles
+     
+        outfile = open(historyMovFile,"wb")
+        pickle.dump(finalFiles, outfile,2)
+        outfile.close()
+        self.showImage()
+
+    def sortMovDBByFolder(self):
+        tSort = threading.Thread(target=self.sortFilesByFolder)
+        tSort.start()
+        
+    def sortFilesByFolder(self):
+        historyMovFile = self.getHistoryMovFileName()
+        infile = open(historyMovFile,"rb")
+        originalFiles = pickle.load(infile)
+        infile.close()
+
+        originalFiles.sort()
+        originalFiles.reverse()
+        ## print originalFiles
+     
+        outfile = open(historyMovFile,"wb")
+        pickle.dump(originalFiles, outfile,2)
+        outfile.close()
+        self.showImage()
+        
+    def sortMovDBByFileSize(self):
+        tSort = threading.Thread(target=self.sortFilesByFileSize)
+        tSort.start()
+        
+    def sortFilesByFileSize(self):
+        historyMovFile = self.getHistoryMovFileName()
+        infile = open(historyMovFile,"rb")
+        originalFiles = pickle.load(infile)
+        infile.close()
+        sortFiles = []
+        finalFiles = []
+        i=0
+        for file in originalFiles:
+            i=i+1
+            self.updateProgressString(i)
+            if(self.isMovFile(file)):
+                sortFiles.append(os.path.getsize(file))
+        ## print sortFiles
+        
+        originalSize = len(originalFiles)
+        for i in range(originalSize):
+            self.updateProgressString(i)
+            maxValue=max(sortFiles)
+            k=sortFiles.index(maxValue)
+            finalFiles.append(originalFiles[k])
+            sortFiles.remove(maxValue)
+            originalFiles.remove(originalFiles[k])
+        ## print finalFiles
+        
+        outfile = open(historyMovFile,"wb")
+        pickle.dump(finalFiles, outfile,2)
+        outfile.close()
+        self.showImage()
+        
+    def sortMovDBByName(self):
+        tSort = threading.Thread(target=self.sortFilesByName)
+        tSort.start()
+        
+    def sortFilesByName(self):
         historyMovFile = self.getHistoryMovFileName()
         infile = open(historyMovFile,"rb")
         originalFiles = pickle.load(infile)
@@ -322,7 +448,7 @@ class MovBrowser(Frame):
         outfile = open(historyMovFile,"wb")
         pickle.dump(finalFiles, outfile,2)
         outfile.close()
-        tkMessageBox.showinfo( "Movie DB Sort", 'Movie DB Sort Finish.')
+        self.showImage()
 
     def updateMovDB(self):
         movConfigFile = self.getMovBrowserIniFileName()
