@@ -112,7 +112,10 @@ class MovBrowser(Frame):
         movExtension = file.split(".")[-1].upper()
         if(movExtension == 'AVI' or movExtension =='MKV' or movExtension =='WMV' \
            or movExtension == 'MPG' or movExtension == 'ISO' or movExtension =='RM' \
-           or movExtension =='RMVB' or movExtension =='MDF'):
+           or movExtension =='RMVB' or movExtension =='MDF' or movExtension =='DAT' \
+           or movExtension =='ASF' or movExtension =='MP4' or movExtension =='DIVX' \
+           or movExtension =='DIV' or movExtension =='MOV' or movExtension =='MPEG' \
+           or movExtension =='MPE' or movExtension =='FLV' or movExtension =='TS' ):
             return True
         else:
             return False
@@ -156,7 +159,7 @@ class MovBrowser(Frame):
         Label(frm, textvariable=self.progressString).pack(side=LEFT)
 
     def updateProgressString(self,value):
-        self.progressString.set("Progress: %d" % (value))
+        self.progressString.set("Progress: %d" % (value+1))
 
     def setMovFolder(self):
         get_window = Toplevel(self)
@@ -393,17 +396,13 @@ class MovBrowser(Frame):
         infile.close()
         sortFiles = []
         finalFiles = []
-        i=0
         for file in originalFiles:
-            i=i+1
-            self.updateProgressString(i)
             if(self.isMovFile(file)):
                 sortFiles.append(os.path.getsize(file))
         ## print sortFiles
         
         originalSize = len(originalFiles)
         for i in range(originalSize):
-            self.updateProgressString(i)
             maxValue=max(sortFiles)
             k=sortFiles.index(maxValue)
             finalFiles.append(originalFiles[k])
@@ -427,10 +426,7 @@ class MovBrowser(Frame):
         infile.close()
         sortFiles = []
         finalFiles = []
-        i=0
         for file in originalFiles:
-            i=i+1
-            self.updateProgressString(i)
             if(self.isMovFile(file)):
                 sortFiles.append(os.path.split(file)[-1])
         sortFiles=list(set(sortFiles))
@@ -438,8 +434,6 @@ class MovBrowser(Frame):
         ## print sortFiles
 
         for file in sortFiles:
-            i=i+1
-            self.updateProgressString(i)
             for oriFile in originalFiles:
                 if oriFile.find(file) != -1:
                     finalFiles.append(oriFile)
