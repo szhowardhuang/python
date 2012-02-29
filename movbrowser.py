@@ -222,8 +222,9 @@ class MovBrowser(Frame):
             for root, dirs, files in os.walk(rootdir):
                 for file in files:
                     if(self.isMovFile()):
-                        path = root+os.sep+file+'\n'
-                        MOV_FILES.append(os.path.join(root, file))
+                        fileURL = os.path.join(root, file)
+                        if (not os.path.islink(fileURL)):
+                            MOV_FILES.append(fileURL)
             outfile = open(historyMovFile,"wb")
             pickle.dump(MOV_FILES, outfile,2)
             outfile.close()
@@ -472,8 +473,9 @@ class MovBrowser(Frame):
                     i=i+1
                     self.updateProgressString(i)
                     if(self.isMovFile(file)):
-                        path = root+os.sep+file+'\n'
-                        check_files.append(os.path.join(root, file))
+                        fileURL = os.path.join(root, file)
+                        if (not os.path.islink(fileURL)):
+                            check_files.append(fileURL)
         historyMovFile = self.getHistoryMovFileName()
         if(check_files==self.MOV_FILES):
             checkResult = "correct"
