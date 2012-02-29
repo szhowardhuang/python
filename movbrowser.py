@@ -241,12 +241,15 @@ class MovBrowser(Frame):
             ## print photoname
             if(os.path.exists(photoname)):
                 ## print movname,'   ',photoname
-                img = Image.open(photoname)
-                img.thumbnail((self.IMG_W, self.IMG_H))
-                self.photo[k] = ImageTk.PhotoImage(img)
-                self.canvas.create_image(self.IMG_X*(k%self.IMG_NUM_ON_ROW),\
-                                         k//self.IMG_NUM_ON_ROW*self.IMG_Y,\
-                                         image=self.photo[k], anchor="nw")
+                try:
+                    img = Image.open(photoname)
+                    img.thumbnail((self.IMG_W, self.IMG_H))
+                    self.photo[k] = ImageTk.PhotoImage(img)
+                    self.canvas.create_image(self.IMG_X*(k%self.IMG_NUM_ON_ROW),\
+                                            k//self.IMG_NUM_ON_ROW*self.IMG_Y,\
+                                            image=self.photo[k], anchor="nw")
+                except:
+                    pass
             else:
                 self.canvas.create_bitmap(self.IMG_X*(k%self.IMG_NUM_ON_ROW)+self.IMG_X/3,\
                                           k//self.IMG_NUM_ON_ROW*self.IMG_Y+self.IMG_H/2, \
