@@ -36,6 +36,8 @@ class MovBrowser(Frame):
         
         Filemenu = Menu(self.menubar)
         self.menubar.add_cascade(label="File", menu=Filemenu)
+        Filemenu.add_command(label="Load File", command=self.loadMovDBFile)
+        Filemenu.add_command(label="Save File As", command=self.saveMovDBFileAs)
         Filemenu.add_command(label="Exit", command=self.quit)
         
         Operatemenu = Menu(self.menubar)
@@ -342,10 +344,12 @@ class MovBrowser(Frame):
         tSort.start()
         
     def sortFilesByPlayback(self):
+        originalFiles=[]
         historyMovFile = self.getHistoryMovFileName()
-        infile = open(historyMovFile,"rb")
-        originalFiles = pickle.load(infile)
-        infile.close()
+        if(os.path.exists(historyMovFile)):
+            infile = open(historyMovFile,"rb")
+            originalFiles = pickle.load(infile)
+            infile.close()
 
         finalFiles = []
         favoriteFiles = []
@@ -355,7 +359,8 @@ class MovBrowser(Frame):
             favoriteFiles = pickle.load(infile)
             infile.close()       
         favoriteLen = len(favoriteFiles)
-        if favoriteLen == 0:
+        originalLen = len(originalFiles)
+        if favoriteLen == 0 or originalLen == 0:
             return
         else:
             for i in range(favoriteLen):
@@ -375,10 +380,12 @@ class MovBrowser(Frame):
         tSort.start()
         
     def sortFilesByFolder(self):
+        originalFiles=[]
         historyMovFile = self.getHistoryMovFileName()
-        infile = open(historyMovFile,"rb")
-        originalFiles = pickle.load(infile)
-        infile.close()
+        if(os.path.exists(historyMovFile)):
+            infile = open(historyMovFile,"rb")
+            originalFiles = pickle.load(infile)
+            infile.close()
 
         originalFiles.sort()
         originalFiles.reverse()
@@ -394,10 +401,12 @@ class MovBrowser(Frame):
         tSort.start()
         
     def sortFilesByFileSize(self):
+        originalFiles=[]
         historyMovFile = self.getHistoryMovFileName()
-        infile = open(historyMovFile,"rb")
-        originalFiles = pickle.load(infile)
-        infile.close()
+        if(os.path.exists(historyMovFile)):
+            infile = open(historyMovFile,"rb")
+            originalFiles = pickle.load(infile)
+            infile.close()
         sortFiles = []
         finalFiles = []
         for file in originalFiles:
@@ -424,10 +433,12 @@ class MovBrowser(Frame):
         tSort.start()
         
     def sortFilesByName(self):
+        originalFiles=[]
         historyMovFile = self.getHistoryMovFileName()
-        infile = open(historyMovFile,"rb")
-        originalFiles = pickle.load(infile)
-        infile.close()
+        if(os.path.exists(historyMovFile)):
+            infile = open(historyMovFile,"rb")
+            originalFiles = pickle.load(infile)
+            infile.close()
         sortFiles = []
         finalFiles = []
         for file in originalFiles:
@@ -486,7 +497,35 @@ class MovBrowser(Frame):
             outfile.close()
         tkMessageBox.showinfo( "Movie DB Verify", checkResult+' , Movie DB Verify Finish.')
             
-     
+    def saveMovDBFileAs(self):
+        originalFiles = []
+        historyMovFile = self.getHistoryMovFileName()
+        if(os.path.exists(historyMovFile)):
+            infile = open(historyMovFile,"rb")
+            originalFiles = pickle.load(infile)
+            infile.close()
+        
+        filename=tkFileDialog.asksaveasfilename(defaultextension='.dat',initialdir=os.getenv('HOME'),\
+                                                filetypes=[('mov list files', '.dat')])
+        if filename:
+            outfile = open(filename, 'wb')
+            pickle.dump(originalFiles, outfile,2)
+            outfile.close()
+            
+    def loadMovDBFile(self):
+        MOV_FILES=[]
+        filename=tkFileDialog.askopenfilename(defaultextension='.dat',initialdir=os.getenv('HOME'),\
+                                                filetypes=[('mov list files', '.dat')])
+        if filename:
+            infile = open(filename, 'rb')
+            MOV_FILES=pickle.load(infile)
+            infile.close()
+        
+        historyMovFile = self.getHistoryMovFileName()
+        outfile = open(historyMovFile,"wb")
+        pickle.dump(MOV_FILES, outfile,2)
+        outfile.close()
+
         
 if __name__ == '__main__':     
     root = Tk()
