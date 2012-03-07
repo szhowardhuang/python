@@ -1,4 +1,5 @@
-﻿#coding=utf-8 
+﻿#!/usr/bin/python
+#coding=utf-8 
 
 from Tkinter import *
 import glob, os
@@ -43,7 +44,8 @@ class MovBrowser(Frame):
         Operatemenu = Menu(self.menubar)
         Sorttypemenu = Menu(Operatemenu)
         self.menubar.add_cascade(label="Operate", menu=Operatemenu)
-        Operatemenu.add_command(label="Show Image", command=self.startShowImage)
+        Operatemenu.add_command(label="Show All Image", command=self.startShowAllImage)
+        Operatemenu.add_command(label="Show Favorite Image", command=self.startShowFavImage)
         Operatemenu.add_command(label="Update movie DB", command=self.updateMovDB)
         Operatemenu.add_cascade(label="Sort movie DB", menu=Sorttypemenu)
         
@@ -207,12 +209,32 @@ class MovBrowser(Frame):
             pass
         
  
-    def startShowImage(self):
-        t2 = threading.Thread(target=self.showImage)
+    def startShowFavImage(self):
+        tShowFavImage = threading.Thread(target=self.showFavImage)
+        tShowFavImage.start()
+ 
+    def showFavImage(self):
+        finalFiles = []
+        favoriteFiles = []
+        favoriteFileName = self.getFavoriteFileName()
+        if(os.path.exists(favoriteFileName)):
+            infile = open(favoriteFileName,"rb")
+            favoriteFiles = pickle.load(infile)
+            infile.close()       
+        favoriteLen = len(favoriteFiles)
+        if favoriteLen == 0:
+            return
+        else:
+            for i in range(favoriteLen):
+                finalFiles.append(favoriteFiles[i][1])
+        self.MOV_FILES = finalFiles
+        self.showImage()   
+ 
+    def startShowAllImage(self):
+        t2 = threading.Thread(target=self.showAllImage)
         t2.start()
-        
-        
-    def showImage(self):
+    
+    def initShowAllImage(self):
         MOV_FILES=[]
         historyMovFile = self.getHistoryMovFileName()
         if(os.path.exists(historyMovFile)):
@@ -230,8 +252,14 @@ class MovBrowser(Frame):
             outfile = open(historyMovFile,"wb")
             pickle.dump(MOV_FILES, outfile,2)
             outfile.close()
+        return MOV_FILES
+    
+    def showAllImage(self):
+        self.MOV_FILES = self.initShowAllImage()
+        self.showImage()        
         
-        self.MOV_FILES = MOV_FILES            
+    def showImage(self):
+        MOV_FILES = self.MOV_FILES         
         self.photo = list(range(len(MOV_FILES)))
         self.canvas.delete('all')
         fileNumbers = len(MOV_FILES)
@@ -373,7 +401,7 @@ class MovBrowser(Frame):
         outfile = open(historyMovFile,"wb")
         pickle.dump(finalFiles, outfile,2)
         outfile.close()
-        self.showImage()
+        self.showAllImage()
 
     def sortMovDBByFolder(self):
         tSort = threading.Thread(target=self.sortFilesByFolder)
@@ -394,7 +422,7 @@ class MovBrowser(Frame):
         outfile = open(historyMovFile,"wb")
         pickle.dump(originalFiles, outfile,2)
         outfile.close()
-        self.showImage()
+        self.showAllImage()
         
     def sortMovDBByFileSize(self):
         tSort = threading.Thread(target=self.sortFilesByFileSize)
@@ -426,7 +454,7 @@ class MovBrowser(Frame):
         outfile = open(historyMovFile,"wb")
         pickle.dump(finalFiles, outfile,2)
         outfile.close()
-        self.showImage()
+        self.showAllImage()
         
     def sortMovDBByName(self):
         tSort = threading.Thread(target=self.sortFilesByName)
@@ -457,7 +485,7 @@ class MovBrowser(Frame):
         outfile = open(historyMovFile,"wb")
         pickle.dump(finalFiles, outfile,2)
         outfile.close()
-        self.showImage()
+        self.showAllImage()
 
     def updateMovDB(self):
         movConfigFile = self.getMovBrowserIniFileName()
