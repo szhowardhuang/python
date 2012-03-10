@@ -1,4 +1,4 @@
-#!/usr/bin/python
+﻿#!/usr/bin/python
 #coding=utf-8 
 
 from Tkinter import *
@@ -168,28 +168,15 @@ class ImgBrowser(Frame):
             if(ord(data[0]) != 0xFF):
                 break   ## Check that we are truly at the start of another block
                 
-            ## packets without data
-            if(ord(data[1]) == 0xD0 or ord(data[1]) == 0xD1 or ord(data[1]) == 0xD2 or \
-                ord(data[1]) == 0xD3 or ord(data[1]) == 0xD4 or ord(data[1]) == 0xD5 or \
-                ord(data[1]) == 0xD6 or ord(data[1]) == 0xD7 or ord(data[1]) == 0xD8 or \
-                ord(data[1]) == 0xD9 ):
-                    blockLength = 2
+            ## packets with size information
+            if(ord(data[1]) == 0xC0):
+                data = infile.read(7)
+                height = ord(data[3])*256 + ord(data[4])
+                width = ord(data[5])*256 + ord(data[6])
+                break
             else:
-                ## packets with size information
-                ## if(ord(data[1]) == 0xC0 or ord(data[1]) == 0xC1 or ord(data[1]) == 0xC2 or \
-                    ## ord(data[1]) == 0xC3 or ord(data[1]) == 0xC4 or ord(data[1]) == 0xC5 or \
-                    ## ord(data[1]) == 0xC6 or ord(data[1]) == 0xC7 or ord(data[1]) == 0xC8 or \
-                    ## ord(data[1]) == 0xC9 or ord(data[1]) == 0xCA or ord(data[1]) == 0xCB or \
-                    ## ord(data[1]) == 0xCC or ord(data[1]) == 0xCD or ord(data[1]) == 0xCE or \
-                    ## ord(data[1]) == 0xCF ):
-                if(ord(data[1]) == 0xC0):
-                    data = infile.read(7)
-                    height = ord(data[3])*256 + ord(data[4])
-                    width = ord(data[5])*256 + ord(data[6])
-                    break
-                else:
-                    data = infile.read(2)
-                    blockLength = ord(data[0]) * 256 + ord(data[1]) + 2 ## Go to the next block
+                data = infile.read(2)
+                blockLength = ord(data[0]) * 256 + ord(data[1]) + 2 ## Go to the next block
 
         print hex(width) , hex(height)
         infile.close() 
