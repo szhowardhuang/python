@@ -392,8 +392,12 @@ class MovBrowser(Frame):
             return
         else:
             for i in range(favoriteLen):
-                finalFiles.append(favoriteFiles[i][1])
-                originalFiles.remove(favoriteFiles[i][1])
+                try:
+                    finalFiles.append(favoriteFiles[i][1])
+                    originalFiles.remove(favoriteFiles[i][1])
+                except:
+                    pass
+                    
 
         finalFiles = finalFiles + originalFiles
         ## print finalFiles
