@@ -119,7 +119,8 @@ class MovBrowser(Frame):
            or movExtension =='RMVB' or movExtension =='MDF' or movExtension =='DAT' \
            or movExtension =='ASF' or movExtension =='MP4' or movExtension =='DIVX' \
            or movExtension =='DIV' or movExtension =='MOV' or movExtension =='MPEG' \
-           or movExtension =='MPE' or movExtension =='FLV' or movExtension =='TS' ):
+           or movExtension =='MPE' or movExtension =='FLV' or movExtension =='TS' \
+           or movExtension =='BIN'):
             return True
         else:
             return False
@@ -297,14 +298,15 @@ class MovBrowser(Frame):
         self.canvas.bind('<Button-5>', lambda event : self.canvas.yview('scroll', 1, 'units'))
         
     def convertFilename(self,src):
-        print repr(src) 
         isUnicode = False
         if(isinstance(src, unicode)):
             isUnicode = True
             src.encode('GBK') ## encode to GBK for chinses handler
+            print "unicode"
         dest = []
         for i in range(len(src)):
-            if src[i] == ' ' or src[i] == '(' or src[i] == ')' or src[i] == '-':
+            if src[i] == ' ' or src[i] == '(' or src[i] == ')' or src[i] == '-' \
+                or src[i] == '&' or src[i] == '\'' or src[i] == '[' or src[i] == ']':
                 dest += '\\'
             dest += src[i]
         if isUnicode:
