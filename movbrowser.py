@@ -46,6 +46,7 @@ class MovBrowser(Frame):
         self.menubar.add_cascade(label="Operate", menu=Operatemenu)
         Operatemenu.add_command(label="Show All Image", command=self.startShowAllImage)
         Operatemenu.add_command(label="Show Favorite Image", command=self.startShowFavImage)
+        Operatemenu.add_command(label="Show HD Movie", command=self.startShowHdMovie)
         Operatemenu.add_command(label="Update movie DB", command=self.updateMovDB)
         Operatemenu.add_cascade(label="Sort movie DB", menu=Sorttypemenu)
         
@@ -97,6 +98,7 @@ class MovBrowser(Frame):
     def getFavoriteFileName(self):
         return os.getenv('HOME')+os.sep+'favlist.dat'
     
+  
     def setMovPlayer(self):
         if(self.var.get() == 1):
             self.movPlayer = 'default player'
@@ -209,6 +211,23 @@ class MovBrowser(Frame):
         except IndexError:
             pass
         
+    def startShowHdMovie(self):
+        tShowHdMovieImage = threading.Thread(target=self.showHdMovieImage)
+        tShowHdMovieImage.start()
+ 
+    def showHdMovieImage(self):
+        finalFiles = []
+        hdMovieFiles = self.initShowAllImage()
+        hdLen = len(hdMovieFiles)
+        if hdLen == 0:
+            return
+        else:
+            for i in range(hdLen):
+                if (hdMovieFiles[i].find('HD') != -1):
+                    finalFiles.append(hdMovieFiles[i])
+        self.MOV_FILES = finalFiles
+        self.showImage()  
+ 
  
     def startShowFavImage(self):
         tShowFavImage = threading.Thread(target=self.showFavImage)
