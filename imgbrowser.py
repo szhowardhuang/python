@@ -71,6 +71,43 @@ class ImgBrowser(Frame):
                         IMG_FILES.append(fileURL)
         return IMG_FILES
     
+    def convertFilename(self,src):
+        isUnicode = False
+        if(isinstance(src, unicode)):
+            isUnicode = True
+            src.encode('GBK') ## encode to GBK for chinses handler
+            print "unicode"
+        dest = []
+        for i in range(len(src)):
+            if src[i] == ' ' or src[i] == '(' or src[i] == ')' or src[i] == '-' \
+                or src[i] == '&' or src[i] == '\'' or src[i] == '[' or src[i] == ']':
+                dest += '\\'
+            dest += src[i]
+        if isUnicode:
+            return ''.join(dest).encode('utf-8') ## encode to utf-8
+        else:
+            return ''.join(dest)    
+    
+    def openFileByDefaultApplication(self, file):
+        if os.name == "nt":
+            os.filestart(file)
+        elif os.name == "posix":
+            if os.uname()[0] == "Linux":
+                os.system("/usr/bin/xdg-open " + self.convertFilename(file))
+            elif os.uname()[0] == "Darwin":
+                os.system("open "+file)
+        print os.uname()[0]
+    
+    def onDoubleClick(self, event):
+        raw = int(self.canvas.canvasx(event.x) // self.IMG_X)
+        collum = int(self.canvas.canvasy(event.y) // self.IMG_Y)
+        imgFile=self.IMG_FILES[raw+self.IMG_NUM_ON_ROW*collum]
+        if(os.path.exists(imgFile)):
+            self.openFileByDefaultApplication(imgFile)  
+        else: ## open folder,then user can modify image name by manual
+            self.openFileByDefaultApplication(os.path.split(imgFile)[0])
+
+    
     def showAllImage(self):
         self.IMG_FILES = self.initShowAllImage()
         self.showImage()        
@@ -110,7 +147,8 @@ class ImgBrowser(Frame):
             self.canvas.create_text(self.IMG_X*(k%self.IMG_NUM_ON_ROW)+self.IMG_W/3,\
                                     k//self.IMG_NUM_ON_ROW*self.IMG_Y+self.IMG_H+30, \
                                     text=imgDimension, fill='beige', width=self.IMG_W)                        
-
+        
+        self.canvas.bind('<Double-1>', self.onDoubleClick)       # set event handler
         self.canvas.bind('<Button-4>', lambda event : self.canvas.yview('scroll', -1, 'units'))
         self.canvas.bind('<Button-5>', lambda event : self.canvas.yview('scroll', 1, 'units'))
         
@@ -183,7 +221,7 @@ class ImgBrowser(Frame):
                 data = infile.read(2)
                 blockLength = ord(data[0]) * 256 + ord(data[1]) + 2 ## Go to the next block
 
-        print hex(width) , hex(height)
+        ## print hex(width) , hex(height)
         infile.close() 
         return [width,height]
         
