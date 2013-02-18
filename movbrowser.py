@@ -261,7 +261,8 @@ class MovBrowser(Frame):
         else:
             for i in range(hdLen):
                 temp=self.convertFilename(MovieFiles[i])
-                if (temp.find('CHI') != -1):
+                if (temp.find('CHI') != -1 \
+                    or temp.find('-C') != -1 ):
                     finalFiles.append(MovieFiles[i])
         self.MOV_FILES = finalFiles
         self.showImage()  
