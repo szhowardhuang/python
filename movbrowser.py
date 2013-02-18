@@ -48,6 +48,7 @@ class MovBrowser(Frame):
         Operatemenu.add_command(label="Show Favorite Image", command=self.startShowFavImage)
         Operatemenu.add_command(label="Show HD Movie", command=self.startShowHdMovie)
         Operatemenu.add_command(label="Show 3D Movie", command=self.startShow3dMovie)
+        Operatemenu.add_command(label="Show chinese Movie", command=self.startShowChineseMovie)
         Operatemenu.add_command(label="Update movie DB", command=self.updateMovDB)
         Operatemenu.add_cascade(label="Sort movie DB", menu=Sorttypemenu)
         
@@ -123,7 +124,7 @@ class MovBrowser(Frame):
            or movExtension =='ASF' or movExtension =='MP4' or movExtension =='DIVX' \
            or movExtension =='DIV' or movExtension =='MOV' or movExtension =='MPEG' \
            or movExtension =='MPE' or movExtension =='FLV' or movExtension =='TS' \
-           or movExtension =='BIN'):
+           or movExtension =='BIN' or movExtension =='NRG'):
             return True
         else:
             return False
@@ -131,7 +132,7 @@ class MovBrowser(Frame):
     def getPhotoFile(self,file):
         pos = file.rfind('.')
         photoFilename = file[0:pos]+'.UNK'
-        for i in range(1,4): ## remove the latest letter of file
+        for i in range(1,5): ## remove the latest 3 letter of file
             jpgFilename = file[0:pos]+'.jpg'
             pngFilename = file[0:pos]+'.png'
             bmpFilename = file[0:pos]+'.bmp'
@@ -246,7 +247,25 @@ class MovBrowser(Frame):
                     finalFiles.append(MovieFiles[i])
         self.MOV_FILES = finalFiles
         self.showImage()  
+        
+    def startShowChineseMovie(self):
+        tShowChineseMovieImage = threading.Thread(target=self.showChineseMovieImage)
+        tShowChineseMovieImage.start()
  
+    def showChineseMovieImage(self):
+        finalFiles = []
+        MovieFiles = self.initShowAllImage()
+        hdLen = len(MovieFiles)
+        if hdLen == 0:
+            return
+        else:
+            for i in range(hdLen):
+                temp=self.convertFilename(MovieFiles[i])
+                if (temp.find('CHI') != -1):
+                    finalFiles.append(MovieFiles[i])
+        self.MOV_FILES = finalFiles
+        self.showImage()  
+        
     def startShowFavImage(self):
         tShowFavImage = threading.Thread(target=self.showFavImage)
         tShowFavImage.start()
