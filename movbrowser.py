@@ -47,6 +47,7 @@ class MovBrowser(Frame):
         Operatemenu.add_command(label="Show All Image", command=self.startShowAllImage)
         Operatemenu.add_command(label="Show Favorite Image", command=self.startShowFavImage)
         Operatemenu.add_command(label="Show HD Movie", command=self.startShowHdMovie)
+        Operatemenu.add_command(label="Show 3D Movie", command=self.startShow3dMovie)
         Operatemenu.add_command(label="Update movie DB", command=self.updateMovDB)
         Operatemenu.add_cascade(label="Sort movie DB", menu=Sorttypemenu)
         
@@ -223,11 +224,28 @@ class MovBrowser(Frame):
             return
         else:
             for i in range(hdLen):
-                if (hdMovieFiles[i].find('HD') != -1):
+                if (hdMovieFiles[i].find('HD') != -1 \
+                    or hdMovieFiles[i].find('hd') != -1):
                     finalFiles.append(hdMovieFiles[i])
         self.MOV_FILES = finalFiles
         self.showImage()  
  
+    def startShow3dMovie(self):
+        tShow3dMovieImage = threading.Thread(target=self.show3dMovieImage)
+        tShow3dMovieImage.start()
+ 
+    def show3dMovieImage(self):
+        finalFiles = []
+        MovieFiles = self.initShowAllImage()
+        hdLen = len(MovieFiles)
+        if hdLen == 0:
+            return
+        else:
+            for i in range(hdLen):
+                if (MovieFiles[i].find('3D') != -1):
+                    finalFiles.append(MovieFiles[i])
+        self.MOV_FILES = finalFiles
+        self.showImage()  
  
     def startShowFavImage(self):
         tShowFavImage = threading.Thread(target=self.showFavImage)
