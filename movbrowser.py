@@ -192,9 +192,11 @@ class MovBrowser(Frame):
         
     def addFolder(self):
         rootdir = tkFileDialog.askdirectory(parent=self.get_window)
+        if os.name == "nt":
+            rootdir = os.path.normpath(rootdir)
         self.lis.insert(END,rootdir)
         movDirectory = self.lis.get(0,END)
-        ## print movDirectory
+        print movDirectory
         filename=self.getMovBrowserIniFileName()
         outfile = open(filename,"w")
         pickle.dump(movDirectory, outfile,0)
@@ -362,9 +364,10 @@ class MovBrowser(Frame):
             print "unicode"
         dest = []
         for i in range(len(src)):
-            if src[i] == ' ' or src[i] == '(' or src[i] == ')' or src[i] == '-' \
-                or src[i] == '&' or src[i] == '\'' or src[i] == '[' or src[i] == ']':
-                dest += '\\'
+            if os.name == "posix":
+                if src[i] == ' ' or src[i] == '(' or src[i] == ')' or src[i] == '-' \
+                    or src[i] == '&' or src[i] == '\'' or src[i] == '[' or src[i] == ']':
+                    dest += '\\'
             dest += src[i]
         if isUnicode:
             return ''.join(dest).encode('utf-8') ## encode to utf-8
@@ -374,13 +377,13 @@ class MovBrowser(Frame):
     
     def openFileByDefaultApplication(self, file):
         if os.name == "nt":
-            os.filestart(file)
+            os.startfile(file.encode(sys.getfilesystemencoding()))
         elif os.name == "posix":
             if os.uname()[0] == "Linux":
                 os.system("/usr/bin/xdg-open " + self.convertFilename(file))
             elif os.uname()[0] == "Darwin":
-                os.system("open "+file)
-        print os.uname()[0]
+                os.system("open "+ self.convertFilename(file))
+            ## print os.uname()[0]
 
     def saveFavoriteFile(self,filename):
         originalFiles = []
