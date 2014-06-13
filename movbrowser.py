@@ -589,7 +589,10 @@ class MovBrowser(Frame):
             outfile = open(historyMovFile,"wb")
             pickle.dump(check_files, outfile,2)
             outfile.close()
-        tkMessageBox.showinfo( "Movie DB Verify", checkResult+' , Movie DB Verify Finish.')
+        if os.name == "nt":
+            print checkResult
+        else:
+            tkMessageBox.showinfo( "Movie DB Verify", checkResult+' , Movie DB Verify Finish.')
             
     def saveMovDBFileAs(self):
         originalFiles = []
