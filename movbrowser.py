@@ -1,4 +1,4 @@
-﻿#!/usr/bin/python
+#!/usr/bin/python
 #coding=utf-8 
 
 from Tkinter import *
@@ -353,9 +353,30 @@ class MovBrowser(Frame):
                                     text=mov_sname, fill='beige', width=self.IMG_W)
 
         self.canvas.bind('<Double-1>', self.onDoubleClick)       # set event handler
-        self.canvas.bind('<Button-4>', lambda event : self.canvas.yview('scroll', -1, 'units'))
-        self.canvas.bind('<Button-5>', lambda event : self.canvas.yview('scroll', 1, 'units'))
-        
+        if os.name == "nt":
+            self.canvas.bind_all("<MouseWheel>", self.mouse_wheel_win)
+        elif os.name == "posix":
+            if os.uname()[0] == "Linux":
+                self.canvas.bind('<Button-4>', lambda event : self.canvas.yview('scroll', -1, 'units'))
+                self.canvas.bind('<Button-5>', lambda event : self.canvas.yview('scroll', 1, 'units'))
+            elif os.uname()[0] == "Darwin":
+                self.canvas.bind_all("<MouseWheel>", self.mouse_wheel_osx)
+
+    def mouse_wheel_win(self,event):
+        if event.delta == -28:
+            self.canvas.yview('scroll', -1, 'units')
+        if event.delta == 28:
+            self.canvas.yview('scroll', 1, 'units')
+
+        print event.delta
+        ## print event.type
+
+    def mouse_wheel_osx(self,event):
+        self.canvas.yview('scroll', event.delta, 'units')
+
+        print event.delta
+        ## print event.type
+  
     def convertFilename(self,src):
         isUnicode = False
         if(isinstance(src, unicode)):
