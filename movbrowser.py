@@ -1,17 +1,19 @@
 #!/usr/bin/python
 #coding=utf-8 
 
-from Tkinter import *
+from tkinter import *
 import glob, os
 from PIL import Image, ImageTk
-import tkFileDialog
+import tkinter.filedialog as filedialog
 import subprocess
 import shutil
 import stat
 import threading
 import time
 import pickle
-import tkMessageBox
+import tkinter.messagebox
+from pathlib import Path
+import subprocess
 ## import re
 
 class MovBrowser(Frame):
@@ -92,13 +94,16 @@ class MovBrowser(Frame):
         self.canvas = canv
     
     def getMovBrowserIniFileName(self):
-        return os.getenv('HOME')+os.sep+'movlist.ini'
+        home = str(Path.home())
+        return home + os.sep +'movlist.ini'
     
     def getHistoryMovFileName(self):
-        return os.getenv('HOME')+os.sep+'movlist.dat'
+        home = str(Path.home())
+        return home + os.sep +'movlist.dat'
     
     def getFavoriteFileName(self):
-        return os.getenv('HOME')+os.sep+'favlist.dat'
+        home = str(Path.home())
+        return home + os.sep +'favlist.dat'
     
   
     def setMovPlayer(self):
@@ -180,7 +185,7 @@ class MovBrowser(Frame):
         lis = Listbox(get_window,width=50)
         filename=self.getMovBrowserIniFileName()
         if(os.path.exists(filename)):
-            infile = open(filename, 'r')
+            infile = open(filename, 'rb+')
             movDirectory = pickle.load(infile)
             infile.close()
             for str in movDirectory:
@@ -191,14 +196,14 @@ class MovBrowser(Frame):
  
         
     def addFolder(self):
-        rootdir = tkFileDialog.askdirectory(parent=self.get_window)
+        rootdir = filedialog.askdirectory()
         if os.name == "nt":
             rootdir = os.path.normpath(rootdir)
         self.lis.insert(END,rootdir)
         movDirectory = self.lis.get(0,END)
-        print movDirectory
+        print(movDirectory)
         filename=self.getMovBrowserIniFileName()
-        outfile = open(filename,"w")
+        outfile = open(filename,"wb+")
         pickle.dump(movDirectory, outfile,0)
         outfile.close()
      
@@ -209,7 +214,7 @@ class MovBrowser(Frame):
             movDirectory = self.lis.get(0,END)
             ## print movDirectory
             filename=self.getMovBrowserIniFileName()
-            outfile = open(filename,"w")
+            outfile = open(filename,"wb+")
             pickle.dump(movDirectory, outfile,0)
             outfile.close()
         except IndexError:
@@ -278,7 +283,7 @@ class MovBrowser(Frame):
         favoriteFiles = []
         favoriteFileName = self.getFavoriteFileName()
         if(os.path.exists(favoriteFileName)):
-            infile = open(favoriteFileName,"rb")
+            infile = open(favoriteFileName,"rb+")
             favoriteFiles = pickle.load(infile)
             infile.close()       
         favoriteLen = len(favoriteFiles)
@@ -298,18 +303,18 @@ class MovBrowser(Frame):
         MOV_FILES=[]
         historyMovFile = self.getHistoryMovFileName()
         if(os.path.exists(historyMovFile)):
-            infile = open(historyMovFile, 'rb')
+            infile = open(historyMovFile, 'rb+')
             MOV_FILES = pickle.load(infile)
             infile.close()
         else:
-            rootdir = tkFileDialog.askdirectory()
+            rootdir = filedialog.askdirectory()
             for root, dirs, files in os.walk(rootdir):
                 for file in files:
-                    if(self.isMovFile()):
+                    if(self.isMovFile(file)):
                         fileURL = os.path.join(root, file)
                         if (not os.path.islink(fileURL)):
                             MOV_FILES.append(fileURL)
-            outfile = open(historyMovFile,"wb")
+            outfile = open(historyMovFile,"wb+")
             pickle.dump(MOV_FILES, outfile,2)
             outfile.close()
         return MOV_FILES
@@ -363,18 +368,18 @@ class MovBrowser(Frame):
                 self.canvas.bind_all("<MouseWheel>", self.mouse_wheel_osx)
 
     def mouse_wheel_win(self,event):
-        if event.delta == -28:
-            self.canvas.yview('scroll', -1, 'units')
-        if event.delta == 28:
+        if event.delta == -120:
             self.canvas.yview('scroll', 1, 'units')
+        if event.delta == 120:
+            self.canvas.yview('scroll', -1, 'units')
 
-        print event.delta
+#        print(event.delta)
         ## print event.type
 
     def mouse_wheel_osx(self,event):
         self.canvas.yview('scroll', event.delta, 'units')
 
-        print event.delta
+#        print(event.delta)
         ## print event.type
   
     def convertFilename(self,src):
@@ -382,7 +387,7 @@ class MovBrowser(Frame):
         if(isinstance(src, unicode)):
             isUnicode = True
             src.encode('GBK') ## encode to GBK for chinses handler
-            print "unicode"
+#            print("unicode")
         dest = []
         for i in range(len(src)):
             if os.name == "posix":
@@ -391,14 +396,19 @@ class MovBrowser(Frame):
                     dest += '\\'
             dest += src[i]
         if isUnicode:
-            return ''.join(dest).encode('utf-8') ## encode to utf-8
+#            return ''.join(dest).encode('utf-8') ## encode to utf-8
+            return ''.join(dest)
         else:
             return ''.join(dest)
         
     
     def openFileByDefaultApplication(self, file):
         if os.name == "nt":
-            os.startfile(file.encode(sys.getfilesystemencoding()))
+#            file = str(file.encode(sys.getfilesystemencoding()))
+#            if(isinstance(file, unicode)):
+#                print('unicode')
+#            print(file)
+            os.startfile(file)
         elif os.name == "posix":
             if os.uname()[0] == "Linux":
                 os.system("/usr/bin/xdg-open " + self.convertFilename(file))
@@ -411,7 +421,7 @@ class MovBrowser(Frame):
         newFavorite = True
         favoriteFileName = self.getFavoriteFileName()
         if(os.path.exists(favoriteFileName)):
-            infile = open(favoriteFileName,"rb")
+            infile = open(favoriteFileName,"rb+")
             originalFiles = pickle.load(infile)
             infile.close()       
         favoriteLen = len(originalFiles)
@@ -429,7 +439,7 @@ class MovBrowser(Frame):
         originalFiles.reverse()
         ## print originalFiles
         
-        outfile = open(favoriteFileName,"wb")
+        outfile = open(favoriteFileName,"wb+")
         pickle.dump(originalFiles, outfile,2)
         outfile.close()
         
@@ -458,7 +468,7 @@ class MovBrowser(Frame):
         originalFiles=[]
         historyMovFile = self.getHistoryMovFileName()
         if(os.path.exists(historyMovFile)):
-            infile = open(historyMovFile,"rb")
+            infile = open(historyMovFile,"rb+")
             originalFiles = pickle.load(infile)
             infile.close()
 
@@ -466,7 +476,7 @@ class MovBrowser(Frame):
         favoriteFiles = []
         favoriteFileName = self.getFavoriteFileName()
         if(os.path.exists(favoriteFileName)):
-            infile = open(favoriteFileName,"rb")
+            infile = open(favoriteFileName,"rb+")
             favoriteFiles = pickle.load(infile)
             infile.close()       
         favoriteLen = len(favoriteFiles)
@@ -485,7 +495,7 @@ class MovBrowser(Frame):
         finalFiles = finalFiles + originalFiles
         ## print finalFiles
      
-        outfile = open(historyMovFile,"wb")
+        outfile = open(historyMovFile,"wb+")
         pickle.dump(finalFiles, outfile,2)
         outfile.close()
         self.showAllImage()
@@ -498,7 +508,7 @@ class MovBrowser(Frame):
         originalFiles=[]
         historyMovFile = self.getHistoryMovFileName()
         if(os.path.exists(historyMovFile)):
-            infile = open(historyMovFile,"rb")
+            infile = open(historyMovFile,"rb+")
             originalFiles = pickle.load(infile)
             infile.close()
 
@@ -506,7 +516,7 @@ class MovBrowser(Frame):
         originalFiles.reverse()
         ## print originalFiles
      
-        outfile = open(historyMovFile,"wb")
+        outfile = open(historyMovFile,"wb+")
         pickle.dump(originalFiles, outfile,2)
         outfile.close()
         self.showAllImage()
@@ -519,7 +529,7 @@ class MovBrowser(Frame):
         originalFiles=[]
         historyMovFile = self.getHistoryMovFileName()
         if(os.path.exists(historyMovFile)):
-            infile = open(historyMovFile,"rb")
+            infile = open(historyMovFile,"rb+")
             originalFiles = pickle.load(infile)
             infile.close()
         sortFiles = []
@@ -538,7 +548,7 @@ class MovBrowser(Frame):
             originalFiles.remove(originalFiles[k])
         ## print finalFiles
         
-        outfile = open(historyMovFile,"wb")
+        outfile = open(historyMovFile,"wb+")
         pickle.dump(finalFiles, outfile,2)
         outfile.close()
         self.showAllImage()
@@ -551,7 +561,7 @@ class MovBrowser(Frame):
         originalFiles=[]
         historyMovFile = self.getHistoryMovFileName()
         if(os.path.exists(historyMovFile)):
-            infile = open(historyMovFile,"rb")
+            infile = open(historyMovFile,"rb+")
             originalFiles = pickle.load(infile)
             infile.close()
         sortFiles = []
@@ -569,7 +579,7 @@ class MovBrowser(Frame):
                     finalFiles.append(oriFile)
         ## print finalFiles
         
-        outfile = open(historyMovFile,"wb")
+        outfile = open(historyMovFile,"wb+")
         pickle.dump(finalFiles, outfile,2)
         outfile.close()
         self.showAllImage()
@@ -577,12 +587,12 @@ class MovBrowser(Frame):
     def updateMovDB(self):
         movConfigFile = self.getMovBrowserIniFileName()
         if(os.path.exists(movConfigFile)):
-            infile = open(movConfigFile, 'r')
+            infile = open(movConfigFile, 'rb+')
             movDirectory = pickle.load(infile)
             infile.close()
         else:
-            movDirectory = tkFileDialog.askdirectory()
-            infile = open(movConfigFile, 'w')
+            movDirectory = filedialog.askdirectory()
+            infile = open(movConfigFile, 'wb+')
             pickle.dump(movDirectory, outfile,0)
             infile.close()
         self.movDirectory = movDirectory
@@ -593,7 +603,7 @@ class MovBrowser(Frame):
         check_files=[]
         i=0
         for movfolder in self.movDirectory:
-            print movfolder
+            print(movfolder)
             for root, dirs, files in os.walk(movfolder):
                 for file in files:
                     i=i+1
@@ -607,40 +617,40 @@ class MovBrowser(Frame):
             checkResult = "correct"
         else:
             checkResult = "incorrect"
-            outfile = open(historyMovFile,"wb")
+            outfile = open(historyMovFile,"wb+")
             pickle.dump(check_files, outfile,2)
             outfile.close()
         if os.name == "nt":
-            print checkResult
+            print(checkResult)
         else:
-            tkMessageBox.showinfo( "Movie DB Verify", checkResult+' , Movie DB Verify Finish.')
+            messagebox.showinfo( "Movie DB Verify", checkResult+' , Movie DB Verify Finish.')
             
     def saveMovDBFileAs(self):
         originalFiles = []
         historyMovFile = self.getHistoryMovFileName()
         if(os.path.exists(historyMovFile)):
-            infile = open(historyMovFile,"rb")
+            infile = open(historyMovFile,"rb+")
             originalFiles = pickle.load(infile)
             infile.close()
         
-        filename=tkFileDialog.asksaveasfilename(defaultextension='.dat',initialdir=os.getenv('HOME'),\
+        filename=filedialog.asksaveasfilename(defaultextension='.dat',initialdir=os.getenv('HOME'),\
                                                 filetypes=[('mov list files', '.dat')])
         if filename:
-            outfile = open(filename, 'wb')
+            outfile = open(filename, 'wb+')
             pickle.dump(originalFiles, outfile,2)
             outfile.close()
             
     def loadMovDBFile(self):
         MOV_FILES=[]
-        filename=tkFileDialog.askopenfilename(defaultextension='.dat',initialdir=os.getenv('HOME'),\
+        filename=filedialog.askopenfilename(defaultextension='.dat',initialdir=os.getenv('HOME'),\
                                                 filetypes=[('mov list files', '.dat')])
         if filename:
-            infile = open(filename, 'rb')
+            infile = open(filename, 'rb+')
             MOV_FILES=pickle.load(infile)
             infile.close()
         
         historyMovFile = self.getHistoryMovFileName()
-        outfile = open(historyMovFile,"wb")
+        outfile = open(historyMovFile,"wb+")
         pickle.dump(MOV_FILES, outfile,2)
         outfile.close()
 

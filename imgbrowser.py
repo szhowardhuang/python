@@ -1,10 +1,10 @@
 ﻿#!/usr/bin/python
 #coding=utf-8 
 
-from Tkinter import *
+from tkinter import *
 import glob, os
 from PIL import Image, ImageTk
-import tkFileDialog
+import tkinter.filedialog
 import shutil
 import stat
 import time
@@ -62,7 +62,7 @@ class ImgBrowser(Frame):
         
     def initShowAllImage(self):
         IMG_FILES=[]
-        rootdir = tkFileDialog.askdirectory()
+        rootdir = filedialog.askdirectory()
         for root, dirs, files in os.walk(rootdir):
             for file in files:
                 if(self.isPhotoFile(file)):
@@ -76,7 +76,7 @@ class ImgBrowser(Frame):
         if(isinstance(src, unicode)):
             isUnicode = True
             src.encode('GBK') ## encode to GBK for chinses handler
-            print "unicode"
+            print("unicode")
         dest = []
         for i in range(len(src)):
             if src[i] == ' ' or src[i] == '(' or src[i] == ')' or src[i] == '-' \
@@ -90,13 +90,13 @@ class ImgBrowser(Frame):
     
     def openFileByDefaultApplication(self, file):
         if os.name == "nt":
-            os.filestart(file)
+            os.system(file)
         elif os.name == "posix":
             if os.uname()[0] == "Linux":
                 os.system("/usr/bin/xdg-open " + self.convertFilename(file))
             elif os.uname()[0] == "Darwin":
                 os.system("open "+file)
-        print os.uname()[0]
+            print(os.uname()[0])
     
     def onDoubleClick(self, event):
         raw = int(self.canvas.canvasx(event.x) // self.IMG_X)
@@ -153,7 +153,7 @@ class ImgBrowser(Frame):
         self.canvas.bind('<Button-5>', lambda event : self.canvas.yview('scroll', 1, 'units'))
         
     def getPngFileDimension(self,filename):
-        infile=file(filename,'rb')
+        infile=open(filename,'rb')
         ## infile.seek(16) 
         ## value = infile.read(8)
         ## print repr(value)
@@ -170,12 +170,12 @@ class ImgBrowser(Frame):
 
     def getJpgFileDimension(self,filename):
         width=0 ; height=0
-        infile=file(filename,'rb')
+        infile=open(filename,'rb')
         dataSize = len(infile.read())
         infile.seek(0)
         data = infile.read(4)
-        if(ord(data[0]) == 0xFF and ord(data[1]) == 0xD8 and ord(data[2]) == 0xFF and ord(data[3]) == 0xE0):
-            print 'a valid SOI header'
+        if(data[0] == 0xFF and data[1] == 0xD8 and data[2] == 0xFF and data[3] == 0xE0):
+            print('a valid SOI header')
         else:
             infile.close() 
             return [width,height]
@@ -183,8 +183,8 @@ class ImgBrowser(Frame):
         ## Check for valid JPEG header (null terminated JFIF)
         infile.seek(6)
         data = infile.read(5)
-        if(ord(data[0]) == 0x4A and ord(data[1]) == 0x46 and ord(data[2]) == 0x49 and ord(data[3]) == 0x46 and ord(data[4]) == 0x00):
-            print  'a valid JFIF string'
+        if((data[0]) == 0x4A and (data[1]) == 0x46 and (data[2]) == 0x49 and (data[3]) == 0x46 and (data[4]) == 0x00):
+            print('a valid JFIF string')
         else:
             infile.close() 
             return [width,height]
@@ -193,7 +193,7 @@ class ImgBrowser(Frame):
         ## Retrieve the block length of the first block since the first block will not contain the size of file
         infile.seek(i)
         data = infile.read(2) 
-        blockLength = ord(data[0]) * 256 + ord(data[1])
+        blockLength = (data[0]) * 256 + (data[1])
 
         while(i < dataSize):
             i = i + blockLength    ## Increase the file index to get to the next block
@@ -202,24 +202,24 @@ class ImgBrowser(Frame):
                 
             infile.seek(i)
             data = infile.read(2)
-            print hex(ord(data[0])) , hex(ord(data[1])) 
-            if(ord(data[0]) != 0xFF):
+            print(hex((data[0])) , hex((data[1])) )
+            if((data[0]) != 0xFF):
                 break   ## Check that we are truly at the start of another block
                 
 
             ## packets with size information
-            if(ord(data[1]) == 0xC0 or ord(data[1]) == 0xC1 or ord(data[1]) == 0xC2 or \
-                ord(data[1]) == 0xC3 or ord(data[1]) == 0xC5 or ord(data[1]) == 0xC6 or \
-                ord(data[1]) == 0xC7 or ord(data[1]) == 0xC9 or ord(data[1]) == 0xCA or \
-                ord(data[1]) == 0xCB or ord(data[1]) == 0xCD or ord(data[1]) == 0xCE or \
-                ord(data[1]) == 0xCF ):
+            if((data[1]) == 0xC0 or (data[1]) == 0xC1 or (data[1]) == 0xC2 or \
+                (data[1]) == 0xC3 or (data[1]) == 0xC5 or (data[1]) == 0xC6 or \
+                (data[1]) == 0xC7 or (data[1]) == 0xC9 or (data[1]) == 0xCA or \
+                (data[1]) == 0xCB or (data[1]) == 0xCD or (data[1]) == 0xCE or \
+                (data[1]) == 0xCF ):
                 data = infile.read(7)
-                height = ord(data[3])*256 + ord(data[4])
-                width = ord(data[5])*256 + ord(data[6])
+                height = (data[3])*256 + (data[4])
+                width = (data[5])*256 + (data[6])
                 break
             else:
                 data = infile.read(2)
-                blockLength = ord(data[0]) * 256 + ord(data[1]) + 2 ## Go to the next block
+                blockLength = (data[0]) * 256 + (data[1]) + 2 ## Go to the next block
 
         ## print hex(width) , hex(height)
         infile.close() 
